@@ -133,6 +133,26 @@ class SPV_Price_Handler
             }
             return $apply ? '' : $button;
         }, 9999);
+
+        // Variable product
+        add_action('woocommerce_variable_add_to_cart', function() use ($apply_for) {
+            $apply = false;
+            switch ($apply_for) {
+                case SPV_Apply_For::EVERYONE:
+                    $apply = true;
+                    break;
+                case SPV_Apply_For::GUESTS_ONLY:
+                    $apply = !is_user_logged_in();
+                    break;
+            }
+            if ($apply) {
+                remove_action(
+                    'woocommerce_single_variation',
+                    'woocommerce_single_variation_add_to_cart_button',
+                    20
+                );
+            }
+        }, 1);
     }
 
     /**
@@ -162,7 +182,16 @@ class SPV_Price_Handler
         if (!$apply) return;
 
         global $product;
-        echo wp_kses_post($this->renderRequestForm($product));
+        echo wp_kses(
+            $this->renderRequestForm($product),
+            [
+                'div' => ['class' => []],
+                'form' => ['class' => [], 'data-product-id' => []],
+                'p' => ['class' => []],
+                'input' => ['type' => [], 'name' => [], 'class' => [], 'placeholder' => [], 'required' => []],
+                'button' => ['type' => [], 'class' => []],
+            ]
+        );
     }
 
     /**
@@ -184,10 +213,10 @@ class SPV_Price_Handler
             <?php endif; ?>
             <form class="spv-request-form" data-product-id="<?php echo esc_attr($product_id); ?>">
                 <p class="form-row form-row-wide">
-                    <input type="email" name="spv_email" class="input-text" placeholder="<?php echo esc_attr__('Your email', 'smart-price-visibility-for-woocommerce'); ?>" required>
+                    <input type="email" name="spv_email" class="spv-email input-text" placeholder="<?php echo esc_attr__('Your email', 'smart-price-visibility-for-woocommerce'); ?>" required>
                 </p>
                 <p class="form-row">
-                    <button type="submit" class="button wp-block-button__link wp-element-button wc-block-components-product-button__button"><?php echo esc_html__('Request Price', 'smart-price-visibility-for-woocommerce'); ?></button>
+                    <button type="submit" class="spv-button button wp-element-button wc-block-components-product-button__button"><?php echo esc_html__('Request Price', 'smart-price-visibility-for-woocommerce'); ?></button>
                 </p>
             </form>
         </div>

@@ -131,7 +131,9 @@ final class SPV_Settings
 		check_ajax_referer('spv_nonce', 'nonce');
 
 		// Get raw input, unslash, and ensure it's an array
-		$raw_input = sanitize_text_field( wp_unslash($_POST['settings'] ?? []) );
+		$raw_input = filter_input(INPUT_POST, 'settings', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY) ?: [];
+		$raw_input = wp_unslash($raw_input);
+
 		if (!is_array($raw_input)) {
 			$raw_input = [];
 		}
